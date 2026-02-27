@@ -1,0 +1,16 @@
+# Redirect HTTP to HTTPS on entrypoint "web", except for Let's Encrypt HTTP challenge.
+# Required when using certificatesResolvers with httpChallenge on "web".
+
+http:
+  routers:
+    redirect-to-https:
+      rule: "Host(`api.noktahq.in`) && !PathPrefix(`/.well-known/acme-challenge/`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true

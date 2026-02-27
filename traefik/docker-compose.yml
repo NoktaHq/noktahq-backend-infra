@@ -1,0 +1,39 @@
+# API Gateway (Traefik) for api.noktahq.in
+# Run once on the VPC. Backends (skillfort, stitchfolio) join network noktahq_web and are discovered via labels.
+# SSL certs: mount /etc/letsencrypt/live/api.noktahq.in at /etc/traefik/certs (read-only).
+
+services:
+  traefik:
+    image: traefik:v3.2
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./dynamic:/etc/traefik/dynamic:ro
+      - traefik_logs:/var/log/traefik
+      # ACME storage for Let's Encrypt (when using certificatesResolvers)
+      - traefik_acme:/letsencrypt
+      # Existing SSL certs (optional if using ACME for api.noktahq.in)
+      - /etc/letsencrypt/live/api.noktahq.in:/etc/traefik/certs:ro
+    networks:
+      - noktahq_web
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  noktahq_web:
+    name: noktahq_web
+    driver: bridge
+
+volumes:
+  traefik_logs: {}
+  traefik_acme: {}

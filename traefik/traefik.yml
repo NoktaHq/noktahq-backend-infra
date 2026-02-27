@@ -1,0 +1,50 @@
+# Traefik static configuration for api.noktahq.in
+# Single API gateway: TLS termination, path-based routing to backends.
+
+api:
+  dashboard: true
+
+entryPoints:
+  web:
+    address: ":80"
+    # No global redirect here: Let's Encrypt HTTP challenge needs port 80 (see dynamic/redirect-to-https.yml)
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@noktahq.in
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: noktahq_web
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+log:
+  level: INFO
+
+accessLog:
+  filePath: "/var/log/traefik/access.log"
+  format: json
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: noktahq_web
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+log:
+  level: INFO
+
+accessLog:
+  filePath: "/var/log/traefik/access.log"
+  format: json
