@@ -119,19 +119,23 @@ docker compose ps
 docker network ls | grep noktahq_web
 ```
 
-### 3.4 (Optional) Portainer
+### 3.4 Portainer (included in compose)
 
-To manage containers and see deployments/ports/status:
+Portainer is defined in the same `docker-compose.yml` as Traefik. When you run:
 
 ```bash
-docker volume create portainer_data
-docker run -d -p 9000:9000 --name portainer --restart=always \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v portainer_data:/data \
-  portainer/portainer-ce:latest
+cd /infra/noktahq-backend-infra/traefik
+docker compose up -d
 ```
 
-Then open `http://<VPS-IP>:9000`, create admin user, and use the UI to see stacks (Traefik, SkillFort, Stitchfolio) and containers.
+both Traefik and Portainer start. To run only Traefik (no Portainer), use:
+
+```bash
+docker compose up -d traefik
+```
+
+- **Access:** `http://<VPS-IP>:9000` (e.g. `http://31.97.202.6:9000`). On first visit, create the admin user.
+- Ensure port **9000** is open on the server/firewall if you need to reach it from outside. For production, consider restricting it (e.g. firewall rule to your IP only) or putting it behind a reverse proxy with auth.
 
 ---
 
@@ -184,9 +188,14 @@ Same idea: backend-only compose, join `noktahq_web`, labels for Traefik; CI writ
 
 ---
 
-## 6. Traefik dashboard (optional)
+## 6. Traefik dashboard
 
-Traefik’s API/dashboard can be enabled in `traefik.yml` (already set in this repo). To expose it only locally or via a separate port, use a file provider router and restrict access (e.g. IP or auth). For production, many teams leave the dashboard off or only on localhost.
+The dashboard is **enabled** in `traefik.yml` and **exposed** via the file provider in `traefik/dynamic/dashboard.yml`.
+
+- **URL:** `https://api.noktahq.in/dashboard/` (and `/api` for the API).
+- **Auth:** Basic auth is configured by default (user: `admin`, password: `changeme`). **Change this in production** by editing `traefik/dynamic/dashboard.yml`: generate a new hash with `htpasswd -nb admin YOUR_PASSWORD` and replace the `users` entry in the `dashboard-auth` middleware.
+- To allow unauthenticated access (e.g. only on a trusted network), remove the `middlewares: - dashboard-auth` from the `dashboard` router in `dashboard.yml`.
+- The dashboard shows routers, services, and TLS config discovered from Docker labels and dynamic files.
 
 ---
 
@@ -209,6 +218,6 @@ If you currently have **nginx + backend** containers (each backend with its own 
 | 3 | Clone noktahq-backend-infra, run `docker compose` in `traefik/` |
 | 4 | Env files in `/root/skillfort_env/` and `/root/stitchfolio_env/` |
 | 5 | Push to main/dev on SkillFort and Stitchfolio so CI deploys backends |
-| 6 | (Optional) Install Portainer for UI |
+| 6 | (Optional) Start Portainer from same compose, or skip with `docker compose up -d traefik` |
 
 After that, all traffic goes to **api.noktahq.in**; Traefik terminates TLS and routes by path; backends only run their app container and join `noktahq_web`.

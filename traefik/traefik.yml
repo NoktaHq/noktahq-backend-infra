@@ -34,17 +34,3 @@ log:
 accessLog:
   filePath: "/var/log/traefik/access.log"
   format: json
-  docker:
-    endpoint: "unix:///var/run/docker.sock"
-    exposedByDefault: false
-    network: noktahq_web
-  file:
-    directory: /etc/traefik/dynamic
-    watch: true
-
-log:
-  level: INFO
-
-accessLog:
-  filePath: "/var/log/traefik/access.log"
-  format: json

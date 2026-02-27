@@ -1,0 +1,19 @@
+# Expose Traefik dashboard and API at https://api.noktahq.in/dashboard/
+# Optional: add basicAuth middleware (see Deployment.md) to restrict access.
+
+http:
+  routers:
+    dashboard:
+      rule: "Host(`api.noktahq.in`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))"
+      entryPoints:
+        - websecure
+      service: api@internal
+      middlewares:
+        - dashboard-auth
+  middlewares:
+    # Restrict access: generate hash with: echo $(htpasswd -nb admin YOUR_PASSWORD) | sed -e s/\\$/\\$\\$/g
+    # Then replace the user line below. Remove middlewares from router to allow unauthenticated access.
+    dashboard-auth:
+      basicAuth:
+        users:
+          - "admin:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"   # default: admin / changeme — change in production

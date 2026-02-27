@@ -1,6 +1,7 @@
 # API Gateway (Traefik) for api.noktahq.in
 # Run once on the VPC. Backends (skillfort, stitchfolio) join network noktahq_web and are discovered via labels.
 # SSL certs: mount /etc/letsencrypt/live/api.noktahq.in at /etc/traefik/certs (read-only).
+# Portainer: optional UI at http://<VPS-IP>:9000 (create admin on first visit).
 
 services:
   traefik:
@@ -29,6 +30,20 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Port 9000: reserved for Portainer. Stitchfolio and SkillFort backends use 9000 only
+  # inside their containers (no host port publish), so this is safe.
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - noktahq_web
+
 networks:
   noktahq_web:
     name: noktahq_web
@@ -37,3 +52,4 @@ networks:
 volumes:
   traefik_logs: {}
   traefik_acme: {}
+  portainer_data: {}
