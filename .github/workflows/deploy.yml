@@ -1,0 +1,61 @@
+# Deploy Traefik + Portainer (API gateway for api.noktahq.in) to VPC.
+# Updates config/dashboard/TLS and restarts containers on push to main.
+
+name: Deploy Infra (Traefik)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  SSH_HOST: "31.97.202.6"
+  SSH_USER: "root"
+  DEPLOY_PATH: "/infra/noktahq-backend-infra"
+  BRANCH: "main"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Deploy to VPC
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH"
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "ERROR: docker not found."
+              exit 1
+            fi
+            DEPLOY_PATH="${{ env.DEPLOY_PATH }}"
+            BRANCH="${{ env.BRANCH }}"
+            REPO_URL="git@github.com:${{ github.repository }}.git"
+
+            if [ ! -d "$DEPLOY_PATH" ]; then
+              echo "Infra path not found. Creating and cloning..."
+              mkdir -p /infra
+              git clone "$REPO_URL" "$DEPLOY_PATH"
+              cd "$DEPLOY_PATH"
+              git checkout "$BRANCH"
+            else
+              cd "$DEPLOY_PATH"
+            fi
+
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+            git reset --hard "origin/$BRANCH"
+
+            echo "Starting Traefik + Portainer..."
+            cd "$DEPLOY_PATH/traefik"
+            docker compose up -d
+
+            echo "Infra deployment complete."

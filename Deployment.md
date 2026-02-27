@@ -144,8 +144,10 @@ docker compose up -d traefik
 ### 4.1 Infra (Traefik)
 
 - **Who**: You (or a separate “infra” CI).
-- **When**: Once, or when you change Traefik config/certs.
+- **When**: Once, or when you change Traefik/Portainer config or certs.
 - **How**:
+  - **Via CI**: Push to `main` or run the "Deploy Infra (Traefik)" workflow manually. CI SSHs to the VPC, pulls this repo to `/infra/noktahq-backend-infra`, and runs `docker compose up -d` in `traefik/`. Ensure the repo secret `SSH_PRIVATE_KEY` is set.
+  - **Manual**:
   ```bash
   cd /infra/noktahq-backend-infra/traefik
   docker compose up -d
