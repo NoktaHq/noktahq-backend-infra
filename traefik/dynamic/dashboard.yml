@@ -1,7 +1,15 @@
 # Expose Traefik dashboard and API at https://api.noktahq.in/dashboard/
-# Two routers so /dashboard works; /api is for Traefik API but excludes app paths.
+# Dashboard requires trailing slash; redirect /dashboard -> /dashboard/
 http:
   routers:
+    dashboard-redirect:
+      rule: "Host(`api.noktahq.in`) && Path(`/dashboard`)"
+      entryPoints:
+        - websecure
+      service: api@internal
+      middlewares:
+        - dashboard-add-slash
+      priority: 100
     dashboard:
       rule: "Host(`api.noktahq.in`) && PathPrefix(`/dashboard`)"
       entryPoints:
@@ -17,6 +25,10 @@ http:
       middlewares:
         - dashboard-auth
   middlewares:
+    dashboard-add-slash:
+      redirectRegex:
+        regex: "^https://api\\.noktahq\\.in/dashboard$"
+        replacement: "https://api.noktahq.in/dashboard/"
     # Restrict access: generate hash with: echo $(htpasswd -nb admin YOUR_PASSWORD) | sed -e s/\\$/\\$\\$/g
     # Then replace the user line below. Remove middlewares from router to allow unauthenticated access.
     dashboard-auth:
