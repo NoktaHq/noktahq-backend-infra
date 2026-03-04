@@ -7,6 +7,7 @@ http:
       rule: "Host(`api.noktahq.in`) && !PathPrefix(`/.well-known/acme-challenge/`)"
       entryPoints:
         - web
+      service: api@internal
       middlewares:
         - redirect-to-https
   middlewares:

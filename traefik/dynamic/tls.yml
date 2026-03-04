@@ -1,10 +1,10 @@
 # TLS configuration: use existing certificate for api.noktahq.in
-# Certificates are mounted from host at /etc/letsencrypt/live/api.noktahq.in
+# Host mounts /etc/letsencrypt so live/ symlinks resolve inside the container.
 
 tls:
   certificates:
-    - certFile: /etc/traefik/certs/fullchain.pem
-      keyFile: /etc/traefik/certs/privkey.pem
+    - certFile: /etc/letsencrypt/live/api.noktahq.in/fullchain.pem
+      keyFile: /etc/letsencrypt/live/api.noktahq.in/privkey.pem
   options:
     default:
       minVersion: VersionTLS12

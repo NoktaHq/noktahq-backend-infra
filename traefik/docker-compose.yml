@@ -10,6 +10,8 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    environment:
+      - DOCKER_API_VERSION=1.44
     ports:
       - "80:80"
       - "443:443"
@@ -20,8 +22,8 @@ services:
       - traefik_logs:/var/log/traefik
       # ACME storage for Let's Encrypt (when using certificatesResolvers)
       - traefik_acme:/letsencrypt
-      # Existing SSL certs (optional if using ACME for api.noktahq.in)
-      - /etc/letsencrypt/live/api.noktahq.in:/etc/traefik/certs:ro
+      # Existing SSL certs: mount full letsencrypt dir so live/ symlinks resolve
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - noktahq_web
     logging:
