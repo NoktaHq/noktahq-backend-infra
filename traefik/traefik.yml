@@ -1,8 +1,10 @@
 # Traefik static configuration for api.noktahq.in
 # Single API gateway: TLS termination, path-based routing to backends.
+# api.insecure: dashboard on port 8080 for debugging (use http://SERVER_IP:8080/dashboard/) — restrict firewall.
 
 api:
   dashboard: true
+  insecure: true
 
 entryPoints:
   web:
