@@ -9,6 +9,7 @@ http:
       service: api@internal
       middlewares:
         - dashboard-auth
+      priority: 0
   middlewares:
     dashboard-auth:
       basicAuth:
