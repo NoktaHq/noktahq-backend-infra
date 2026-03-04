@@ -1,10 +1,16 @@
 # Expose Traefik dashboard and API at https://api.noktahq.in/dashboard/
-# Optional: add basicAuth middleware (see Deployment.md) to restrict access.
-
+# Two routers so /dashboard works; /api is for Traefik API but excludes app paths.
 http:
   routers:
     dashboard:
-      rule: "Host(`api.noktahq.in`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))"
+      rule: "Host(`api.noktahq.in`) && PathPrefix(`/dashboard`)"
+      entryPoints:
+        - websecure
+      service: api@internal
+      middlewares:
+        - dashboard-auth
+    traefik-api:
+      rule: "Host(`api.noktahq.in`) && PathPrefix(`/api`) && !PathPrefix(`/api/skillfort`) && !PathPrefix(`/api/sf`)"
       entryPoints:
         - websecure
       service: api@internal
