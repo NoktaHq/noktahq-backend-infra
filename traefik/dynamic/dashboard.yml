@@ -1,17 +1,28 @@
-# Expose Traefik dashboard and API at https://api.noktahq.in/dashboard/
-# Single router matching both /dashboard and /api (excluding app paths) as per Traefik docs.
+# Traefik dashboard and API (dynamic configuration).
+# Docs: https://doc.traefik.io/traefik/v3.3/operations/dashboard/
+#
+# Dashboard URL: https://api.noktahq.in/traefik/dashboard/  (trailing slash mandatory)
+# The basePath /traefik is set in traefik.yml so /traefik/dashboard/ and /traefik/api/
+# are routed to api@internal without conflicting with app paths (/api/skillfort/, /api/sf/).
+#
+# Auth: admin / changeme (change in production).
+# To generate a new password hash:
+#   echo $(htpasswd -nb admin YOUR_PASSWORD) | sed -e 's/\$/\$\$/g'
+# Replace the users entry below with the output.
+
 http:
   routers:
     dashboard:
-      rule: "Host(`api.noktahq.in`) && (PathPrefix(`/dashboard`) || (PathPrefix(`/api`) && !PathPrefix(`/api/skillfort`) && !PathPrefix(`/api/sf`)))"
+      rule: "Host(`api.noktahq.in`) && PathPrefix(`/traefik`)"
       entryPoints:
         - websecure
       service: api@internal
       middlewares:
         - dashboard-auth
-      priority: 0
+      tls: {}
+
   middlewares:
     dashboard-auth:
       basicAuth:
         users:
-          - "admin:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"   # default: admin / changeme — change in production
+          - "admin:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"

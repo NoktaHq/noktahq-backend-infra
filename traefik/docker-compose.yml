@@ -1,7 +1,13 @@
 # API Gateway (Traefik) for api.noktahq.in
-# Run once on the VPC. Backends (skillfort, stitchfolio) join network noktahq_web and are discovered via labels.
-# traefik:v3.6+ required for Docker 29+ (daemon requires API 1.44+); v3.2 fails with "client version 1.24 is too old".
-# Portainer: optional UI at http://<VPS-IP>:9000 (create admin on first visit).
+# Run once on the VPC. Backends (skillfort, stitchfolio, etc.) join network noktahq_web
+# and are discovered automatically by Traefik via Docker labels.
+#
+# Requirements:
+#   - traefik:v3.6+ required for Docker 29+ (daemon API 1.44+).
+#   - SSL cert must exist at /etc/letsencrypt/live/api.noktahq.in/ on the host.
+#   - noktahq_web network is created by this compose; backends must declare it external.
+#
+# Portainer: Docker management UI at http://<VPS-IP>:9000
 
 services:
   traefik:
@@ -10,20 +16,19 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    environment:
-      - DOCKER_API_VERSION=1.44
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
+      # Docker socket (read-only): lets Traefik discover containers via labels.
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Static configuration.
       - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      # Dynamic configuration directory (hot-reloaded).
       - ./dynamic:/etc/traefik/dynamic:ro
+      # Access logs volume.
       - traefik_logs:/var/log/traefik
-      # ACME storage for Let's Encrypt (when using certificatesResolvers)
-      - traefik_acme:/letsencrypt
-      # Existing SSL certs: mount full letsencrypt dir so live/ symlinks resolve
+      # Full letsencrypt directory so live/ symlinks resolve inside the container.
       - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - noktahq_web
@@ -52,5 +57,4 @@ networks:
 
 volumes:
   traefik_logs: {}
-  traefik_acme: {}
   portainer_data: {}

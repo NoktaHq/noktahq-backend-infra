@@ -1,32 +1,35 @@
 # Traefik static configuration for api.noktahq.in
-# Single API gateway: TLS termination, path-based routing to backends.
-# api.insecure: dashboard on port 8080 for debugging (use http://SERVER_IP:8080/dashboard/) — restrict firewall.
+# Docs: https://doc.traefik.io/traefik/v3.3/
 
 api:
   dashboard: true
-  insecure: true
+  # Dashboard served at /traefik/dashboard/ to avoid conflicting with /api/... app paths.
+  # See dynamic/dashboard.yml for the router rule.
+  basePath: /traefik
 
 entryPoints:
   web:
     address: ":80"
-    # No global redirect here: Let's Encrypt HTTP challenge needs port 80 (see dynamic/redirect-to-https.yml)
+    # Built-in HTTP → HTTPS redirect (docs: entryPoints redirection).
+    # Handles all traffic on :80 including Let's Encrypt HTTP challenge.
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
   websecure:
     address: ":443"
-
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: admin@noktahq.in
-      storage: /letsencrypt/acme.json
-      httpChallenge:
-        entryPoint: web
 
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
+    # Only route containers that have traefik.enable=true label.
     exposedByDefault: false
+    # Traefik will use the noktahq_web network to reach backends.
     network: noktahq_web
   file:
+    # Dynamic config directory (hot-reloaded; no restart needed).
     directory: /etc/traefik/dynamic
     watch: true
 

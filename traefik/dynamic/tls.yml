@@ -1,5 +1,9 @@
-# TLS configuration: use existing certificate for api.noktahq.in
-# Host mounts /etc/letsencrypt so live/ symlinks resolve inside the container.
+# TLS configuration (dynamic).
+# Docs: https://doc.traefik.io/traefik/v3.3/https/tls/
+#
+# Uses the existing Let's Encrypt certificate for api.noktahq.in.
+# The full /etc/letsencrypt directory is mounted in docker-compose.yml so
+# the live/ symlinks resolve correctly inside the container.
 
 tls:
   certificates:
@@ -8,3 +12,4 @@ tls:
   options:
     default:
       minVersion: VersionTLS12
+      sniStrict: true
