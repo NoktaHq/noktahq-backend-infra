@@ -5,7 +5,7 @@
 # The basePath /traefik is set in traefik.yml so /traefik/dashboard/ and /traefik/api/
 # are routed to api@internal without conflicting with app paths (/api/skillfort/, /api/sf/).
 #
-# Auth: admin / changeme (change in production).
+# Auth: admin / (see password manager).
 # To generate a new password hash:
 #   echo $(htpasswd -nb admin YOUR_PASSWORD) | sed -e 's/\$/\$\$/g'
 # Replace the users entry below with the output.
@@ -25,4 +25,4 @@ http:
     dashboard-auth:
       basicAuth:
         users:
-          - "admin:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"
+          - "admin:$apr1$XSdGhBHQ$pa22AQ7tBNvQv9GMG6gFA/"

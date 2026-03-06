@@ -10,7 +10,6 @@ api:
 entryPoints:
   web:
     address: ":80"
-    # Built-in HTTP → HTTPS redirect (docs: entryPoints redirection).
     # Handles all traffic on :80 including Let's Encrypt HTTP challenge.
     http:
       redirections:
